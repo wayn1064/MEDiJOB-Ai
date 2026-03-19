@@ -1,6 +1,6 @@
 export type AppEvent =
-  | 'CART_ITEM_ADDED'
-  | 'CART_ITEM_REMOVED'
+  | 'JOB_SCRAPPED'
+  | 'JOB_UNSCRAPPED'
   | 'AUTH_STATE_CHANGED'
   | 'NOTIFICATION_RECEIVED';
 
