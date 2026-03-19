@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Bell, User } from 'lucide-react';
+import { Briefcase, Search, Bell, User } from 'lucide-react';
 import { mockPubSub } from '../../../shared/lib/mockPubSub';
 
 export const GNB: React.FC = () => {
-  const [cartCount, setCartCount] = useState(0);
+  const [scrapCount, setScrapCount] = useState(0);
   const [hasNewNotification, setHasNewNotification] = useState(false);
 
   useEffect(() => {
-    // Subscribe to cart events to update badge reactively (Event-Driven)
-    const unsubCartAdd = mockPubSub.subscribe('CART_ITEM_ADDED', () => {
-      setCartCount(prev => prev + 1);
+    // Subscribe to scrap events to update badge reactively
+    const unsubScrapAdd = mockPubSub.subscribe('JOB_SCRAPPED', () => {
+      setScrapCount(prev => prev + 1);
     });
     
     // Subscribe to notifications
@@ -18,7 +18,7 @@ export const GNB: React.FC = () => {
     });
 
     return () => {
-      unsubCartAdd();
+      unsubScrapAdd();
       unsubNotification();
     };
   }, []);
@@ -39,7 +39,7 @@ export const GNB: React.FC = () => {
             <div className="relative w-full">
               <input
                 type="text"
-                placeholder="어떤 병원 재료를 찾으시나요?"
+                placeholder="어떤 직무, 병원을 찾으시나요?"
                 className="w-full pl-4 pr-10 py-2.5 rounded-full border-2 border-[var(--color-primary)] focus:outline-hidden focus:border-[var(--color-primary-light)] transition-colors text-sm"
               />
               <button className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-primary)] p-1 hover:text-[var(--color-primary-light)]">
@@ -67,14 +67,14 @@ export const GNB: React.FC = () => {
             
             <button className="text-gray-600 hover:text-[var(--color-primary)] transition-colors relative flex flex-col items-center">
               <div className="relative">
-                <ShoppingCart size={24} strokeWidth={1.5} />
-                {cartCount > 0 && (
+                <Briefcase size={24} strokeWidth={1.5} />
+                {scrapCount > 0 && (
                   <span className="absolute -top-1.5 -right-2 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-[var(--color-secondary)] rounded-full">
-                    {cartCount > 99 ? '99+' : cartCount}
+                    {scrapCount > 99 ? '99+' : scrapCount}
                   </span>
                 )}
               </div>
-              <span className="text-[10px] mt-1 font-medium">장바구니</span>
+              <span className="text-[10px] mt-1 font-medium">스크랩</span>
             </button>
           </div>
         </div>
