@@ -1,0 +1,63 @@
+steps:
+  # 1. Build Backend Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/medijob-backend:$COMMIT_SHA', './backend']
+    id: 'build-backend'
+  
+  # 2. Push Backend Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/medijob-backend:$COMMIT_SHA']
+    waitFor: ['build-backend']
+    id: 'push-backend'
+
+  # 3. Deploy Backend to Cloud Run (Serverless Cold Start Prevented)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'medijob-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/medijob-backend:$COMMIT_SHA'
+      - '--region'
+      - 'asia-northeast3'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '5001'
+      - '--min-instances'
+      - '1'
+    waitFor: ['push-backend']
+
+  # 4. Build Frontend Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/medijob-frontend:$COMMIT_SHA', './frontend']
+    waitFor: ['build-backend']   # Optional parallel/sequential flow step
+    id: 'build-frontend'
+  
+  # 5. Push Frontend Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/medijob-frontend:$COMMIT_SHA']
+    waitFor: ['build-frontend']
+    id: 'push-frontend'
+
+  # 6. Deploy Frontend to Cloud Run (Serverless Cold Start Prevented)
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - 'medijob-frontend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/medijob-frontend:$COMMIT_SHA'
+      - '--region'
+      - 'asia-northeast3'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--min-instances'
+      - '1'
+    waitFor: ['push-frontend']
+
+images:
+  - 'gcr.io/$PROJECT_ID/medijob-backend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/medijob-frontend:$COMMIT_SHA'
