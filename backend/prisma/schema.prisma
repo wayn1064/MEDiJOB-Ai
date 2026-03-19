@@ -1,8 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -10,4 +5,68 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+// 공통 결재 워크플로우 테이블 (Core Rule 적용)
+model Approval {
+  id          String   @id @default(uuid())
+  tenantId    String   // 필수: hospitalId 등 분리 독립 대비
+  type        String   // 결재 종류 (채용요청, 연차 등)
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  requesterId String
+  approverId  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// 채용 공고 (Job)
+model Job {
+  id           String   @id @default(uuid())
+  tenantId     String   // 필수: hospitalId
+  hospitalName String   // 병원명
+  title        String   // 채용공고명
+  salary       String   // 급여 안내 (예: "면접 후 결정")
+  location     String   // 지역 (예: "서울 강남구")
+  experience   String   // 경력 조건 (예: "신입/경력")
+  isClosed     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  applicants Applicant[]
+  scraps     Scrap[]
+}
+
+// 구직자 이력서 (Resume)
+model Resume {
+  id        String   @id @default(uuid())
+  userId    String   // 구직자 회원 ID
+  title     String   // 이력서 제목
+  content   String?  // 자기소개서 내용
+  skills    String[] // 주요 직무 역량
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applications Applicant[]
+}
+
+// 입사 지원 내역 (Applicant)
+model Applicant {
+  id        String   @id @default(uuid())
+  jobId     String
+  resumeId  String
+  status    String   @default("REVIEWING") // 심사중, 서류합격, 불합격 등
+  createdAt DateTime @default(now())
+
+  job    Job    @relation(fields: [jobId], references: [id])
+  resume Resume @relation(fields: [resumeId], references: [id])
+}
+
+// 구직자 스크랩 (Scrap)
+model Scrap {
+  id        String   @id @default(uuid())
+  userId    String   // 스크랩한 구직자 ID
+  jobId     String
+  createdAt DateTime @default(now())
+
+  job Job @relation(fields: [jobId], references: [id])
 }
