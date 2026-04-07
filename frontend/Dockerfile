@@ -10,6 +10,8 @@ RUN npm install
 
 # Copy source code and build
 COPY . .
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
 # Cloud Run dynamically assigns port via $PORT env var. 8080 is common.
